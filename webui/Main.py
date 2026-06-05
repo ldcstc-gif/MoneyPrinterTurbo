@@ -672,14 +672,15 @@ with middle_panel:
 
         # 添加TTS服务器选择下拉框
         tts_servers = [
+            ("edge-tts", "Edge TTS (免费)"),
             ("azure-tts-v1", "Azure TTS V1"),
             ("azure-tts-v2", "Azure TTS V2"),
             ("siliconflow", "SiliconFlow TTS"),
             ("gemini-tts", "Google Gemini TTS"),
         ]
 
-        # 获取保存的TTS服务器，默认为v1
-        saved_tts_server = config.ui.get("tts_server", "azure-tts-v1")
+        # 获取保存的TTS服务器，默认为edge-tts
+        saved_tts_server = config.ui.get("tts_server", "edge-tts")
         saved_tts_server_index = 0
         for i, (server_value, _) in enumerate(tts_servers):
             if server_value == saved_tts_server:
@@ -1139,7 +1140,22 @@ if start_button:
         if video_files:
             player_cols = st.columns(len(video_files) * 2 + 1)
             for i, url in enumerate(video_files):
-                player_cols[i * 2 + 1].video(url)
+                col = player_cols[i * 2 + 1]
+                col.video(url)
+                try:
+                    if os.path.isfile(url):
+                        with open(url, "rb") as f:
+                            col.download_button(
+                                label="⬇️ 下载视频",
+                                data=f,
+                                file_name=os.path.basename(url),
+                                mime="video/mp4",
+                                key=f"dl_{i}_{url}",
+                            )
+                    else:
+                        col.markdown(f"[⬇️ 下载视频]({url})")
+                except Exception:
+                    col.markdown(f"[⬇️ 下载视频]({url})")
     except Exception:
         pass
 
