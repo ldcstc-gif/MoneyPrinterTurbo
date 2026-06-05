@@ -662,6 +662,22 @@ with middle_panel:
         params.video_clip_duration = st.selectbox(
             tr("Clip Duration"), options=[2, 3, 4, 5, 6, 7, 8, 9, 10], index=1
         )
+
+        paragraph_options = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        saved_paragraph_number = config.ui.get("paragraph_number", 1)
+        saved_paragraph_index = (
+            paragraph_options.index(saved_paragraph_number)
+            if saved_paragraph_number in paragraph_options
+            else 0
+        )
+        params.paragraph_number = st.selectbox(
+            tr("Number of Paragraphs"),
+            options=paragraph_options,
+            index=saved_paragraph_index,
+            format_func=lambda x: f"{x}  (~{x * 30}s)",
+        )
+        config.ui["paragraph_number"] = params.paragraph_number
+
         params.video_count = st.selectbox(
             tr("Number of Videos Generated Simultaneously"),
             options=[1, 2, 3, 4, 5],

@@ -36,6 +36,7 @@
     "Landscape": "Landscape 16:9",
     "Clip Duration": "Maximum Duration of Video Clips (seconds)",
     "Number of Videos Generated Simultaneously": "Number of Videos Generated Simultaneously",
+    "Number of Paragraphs": "Number of Paragraphs (each ~30s, determines total video duration)",
     "Audio Settings": "**Audio Settings**",
     "Speech Synthesis": "Speech Synthesis Voice",
     "Speech Region": "Region(:red[Required，[Get Region](https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/SpeechServices)])",

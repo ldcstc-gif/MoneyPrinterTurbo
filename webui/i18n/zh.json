@@ -36,6 +36,7 @@
     "Landscape": "横屏 16:9（西瓜视频）",
     "Clip Duration": "视频片段最大时长(秒)（**不是视频总长度**，是指每个**合成片段**的长度）",
     "Number of Videos Generated Simultaneously": "同时生成视频数量",
+    "Number of Paragraphs": "视频总段落数（每段约30秒，:red[决定视频总时长]）",
     "Audio Settings": "**音频设置**",
     "Speech Synthesis": "朗读声音（:red[**与文案语言保持一致**。注意：V2版效果更好，但是需要API KEY]）",
     "Speech Region": "服务区域 (:red[必填，[点击获取](https://portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/SpeechServices)])",
