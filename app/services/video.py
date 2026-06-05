@@ -54,6 +54,12 @@ audio_bitrate = "192k"
 video_codec = "libx264"
 fps = 30
 
+_VAAPI_DEVICE = "/dev/dri/renderD128"
+
+
+def _vaapi_available() -> bool:
+    return os.path.exists(_VAAPI_DEVICE)
+
 
 def get_ffmpeg_binary():
     # 优先复用用户在 config.toml / 环境变量里显式指定的 ffmpeg，可避免
@@ -92,23 +98,25 @@ def concat_video_clips_with_ffmpeg(
             absolute_path = os.path.abspath(clip_file)
             fp.write(f"file '{_escape_ffmpeg_concat_path(absolute_path)}'\n")
 
-    command = [
-        get_ffmpeg_binary(),
-        "-y",
-        "-f",
-        "concat",
-        "-safe",
-        "0",
-        "-i",
-        concat_list_file,
-        "-c:v",
-        video_codec,
-        "-threads",
-        str(threads or 2),
-        "-pix_fmt",
-        "yuv420p",
-        output_file,
-    ]
+    if _vaapi_available():
+        command = [
+            get_ffmpeg_binary(), "-y",
+            "-vaapi_device", _VAAPI_DEVICE,
+            "-f", "concat", "-safe", "0", "-i", concat_list_file,
+            "-vf", "format=nv12,hwupload",
+            "-c:v", "h264_vaapi",
+            output_file,
+        ]
+    else:
+        command = [
+            get_ffmpeg_binary(), "-y",
+            "-f", "concat", "-safe", "0", "-i", concat_list_file,
+            "-c:v", video_codec,
+            "-preset", "ultrafast",
+            "-threads", str(threads or 2),
+            "-pix_fmt", "yuv420p",
+            output_file,
+        ]
 
     try:
         # 使用 ffmpeg 只做一次串联与编码，避免 MoviePy 逐段合并时反复重编码，
@@ -338,7 +346,10 @@ def combine_videos(
                 
             # wirte clip to temp file
             clip_file = f"{output_dir}/temp-clip-{i+1}.mp4"
-            clip.write_videofile(clip_file, logger=None, fps=fps, codec=video_codec)
+            clip.write_videofile(
+                clip_file, logger=None, fps=fps, codec=video_codec,
+                ffmpeg_params=["-preset", "ultrafast", "-crf", "23"],
+            )
 
             # Store clip duration before closing
             clip_duration_saved = clip.duration

@@ -21,4 +21,6 @@ services:
       - "8080:8080"
     command: [ "python3", "main.py" ]
     volumes: *common-volumes
+    devices:
+      - /dev/dri:/dev/dri
     restart: always
