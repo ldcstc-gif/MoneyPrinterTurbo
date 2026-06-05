@@ -1159,19 +1159,28 @@ if start_button:
                 col = player_cols[i * 2 + 1]
                 col.video(url)
                 try:
-                    if os.path.isfile(url):
-                        with open(url, "rb") as f:
+                    # URL format: http://127.0.0.1:8080/tasks/{task_id}/{filename}
+                    # Convert to local file path via utils.task_dir()
+                    import re as _re
+                    m = _re.search(r"/tasks/([^/]+)/(.+)$", url)
+                    if m:
+                        file_path = os.path.join(utils.task_dir(m.group(1)), m.group(2))
+                    elif os.path.isfile(url):
+                        file_path = url
+                    else:
+                        file_path = None
+
+                    if file_path and os.path.isfile(file_path):
+                        with open(file_path, "rb") as f:
                             col.download_button(
                                 label="⬇️ 下载视频",
-                                data=f,
-                                file_name=os.path.basename(url),
+                                data=f.read(),
+                                file_name=os.path.basename(file_path),
                                 mime="video/mp4",
-                                key=f"dl_{i}_{url}",
+                                key=f"dl_{i}_{file_path}",
                             )
-                    else:
-                        col.markdown(f"[⬇️ 下载视频]({url})")
-                except Exception:
-                    col.markdown(f"[⬇️ 下载视频]({url})")
+                except Exception as e:
+                    logger.warning(f"download button error: {e}")
     except Exception:
         pass
 
