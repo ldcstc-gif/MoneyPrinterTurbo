@@ -1,0 +1,36 @@
+# ============================================================
+#  Camera AI 配置文件
+# ============================================================
+
+# 图片上传服务端口（不与 MoneyPrinterTurbo 冲突）
+server_port: 9100
+
+# 上传鉴权 Token（Tasker 上传时带上，防止陌生人上传）
+upload_token: "change-me-please"
+
+# ── 视觉模型 ──────────────────────────────────────────────
+vision:
+  # 切换模型只改这一行：
+  #   qwen-vl-max        最强，按量付费
+  #   qwen-vl-plus       性价比高（推荐）
+  #   qwen-vl-ocr        专攻文字识别
+  model: "qwen-vl-plus"
+  api_key: "YOUR_DASHSCOPE_API_KEY"
+  # 分析提示词（可自定义）
+  prompt: "请详细描述这张运动相机拍摄的图片内容，包括场景、动作、环境细节，用简洁的中文回答。"
+
+# ── TTS 语音合成 ──────────────────────────────────────────
+tts:
+  # 使用 Edge TTS（免费）
+  voice: "zh-CN-XiaoxiaoNeural"   # 女声
+  # voice: "zh-CN-YunxiNeural"    # 男声
+  output_dir: "/tmp/camera-ai-audio"
+
+# ── 推送通知 (ntfy) ───────────────────────────────────────
+ntfy:
+  # 使用 ntfy.sh 免费公共服务（无需自建，国内可访问）
+  server: "https://ntfy.sh"
+  # 你的私有频道名（自定义，越奇特越安全）
+  topic: "camera-ai-YOUR_UNIQUE_ID"
+  # 推送时附带的音频：true=发音频文件，false=只发文字
+  send_audio: true
