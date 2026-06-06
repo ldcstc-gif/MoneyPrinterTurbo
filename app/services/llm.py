@@ -493,6 +493,7 @@ Generate {amount} search terms for stock videos, depending on the subject of a v
 3. you must only return the json-array of strings. you must not return anything else. you must not return the script.
 4. the search terms must be related to the subject of the video.
 5. reply with english search terms only.
+6. if the content involves people, lifestyle, or daily activities, you MUST include at least one term with "Asian" or "Chinese" (e.g., "Asian woman", "Chinese family", "Asian people") to ensure culturally relevant footage.
 
 ## Output Example:
 ["search term 1", "search term 2", "search term 3","search term 4","search term 5"]
