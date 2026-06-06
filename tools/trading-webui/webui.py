@@ -20,33 +20,50 @@ st.caption("Multi-Agents LLM Financial Trading Framework · Powered by DeepSeek"
 
 st.divider()
 
-col1, col2, col3 = st.columns([2, 2, 1])
+MARKET_SUFFIX = {
+    "🇺🇸 美股 (NASDAQ/NYSE)": "",
+    "🇭🇰 港股 (HKEX)": ".HK",
+    "🇨🇳 A股 上海 (SSE)": ".SS",
+    "🇨🇳 A股 深圳 (SZSE)": ".SZ",
+    "₿ 加密货币": "-USD",
+}
+
+MARKET_EXAMPLES = {
+    "🇺🇸 美股 (NASDAQ/NYSE)": "AAPL · TSLA · NVDA · MSFT · AMZN",
+    "🇭🇰 港股 (HKEX)": "0700（腾讯）· 9988（阿里）· 1810（小米）· 0005（汇丰）",
+    "🇨🇳 A股 上海 (SSE)": "600519（茅台）· 601398（工行）· 600036（招行）",
+    "🇨🇳 A股 深圳 (SZSE)": "000858（五粮液）· 000001（平安银行）· 300750（宁德时代）",
+    "₿ 加密货币": "BTC · ETH · SOL · BNB",
+}
+
+col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
 with col1:
-    ticker = st.text_input(
-        "股票代码",
-        value="0700.HK",
-        placeholder="AAPL / 0700.HK / 600519.SS / BTC-USD",
-        help="港股加 .HK，A股加 .SS（上海）或 .SZ（深圳）"
-    )
+    market = st.selectbox("市场", list(MARKET_SUFFIX.keys()))
 with col2:
+    suffix = MARKET_SUFFIX[market]
+    raw_ticker = st.text_input(
+        "股票代码（不需要加后缀）",
+        value="0700" if "港股" in market else "AAPL" if "美股" in market else "600519" if "上海" in market else "000858" if "深圳" in market else "BTC",
+        help=MARKET_EXAMPLES[market]
+    )
+    ticker = raw_ticker.strip().upper() + suffix
+    st.caption(f"完整代码：**{ticker}**　　参考：{MARKET_EXAMPLES[market]}")
+with col3:
     analysis_date = st.date_input(
         "分析日期",
         value=date.today() - timedelta(days=1),
         max_value=date.today() - timedelta(days=1),
-        help="选择分析截止日期，建议用昨天或更早"
     )
-with col3:
+with col4:
     st.write("")
     st.write("")
     run = st.button("🔍 开始分析", type="primary", use_container_width=True)
 
 if run:
-    if not ticker.strip():
+    if not raw_ticker.strip():
         st.error("请输入股票代码")
     else:
-        ticker = ticker.strip().upper()
         date_str = str(analysis_date)
-
         st.info(f"正在分析 **{ticker}**（截止 {date_str}），多智能体协作分析中，预计需要 2~5 分钟...")
 
         log_placeholder = st.empty()
@@ -86,6 +103,3 @@ if run:
             if log_lines:
                 with st.expander("查看详细分析过程"):
                     st.code("\n".join(log_lines), language=None)
-
-st.divider()
-st.caption("常用代码：AAPL · TSLA · NVDA · 0700.HK（腾讯）· 9988.HK（阿里）· 600519.SS（茅台）· BTC-USD")
