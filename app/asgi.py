@@ -68,6 +68,13 @@ app.mount(
     "/tasks", StaticFiles(directory=task_dir, html=True, follow_symlink=True), name=""
 )
 
+warehouse_dir = utils.warehouse_dir()
+app.mount(
+    "/warehouse-files",
+    StaticFiles(directory=warehouse_dir, html=False, follow_symlink=True),
+    name="warehouse-files",
+)
+
 public_dir = utils.public_dir()
 app.mount("/", StaticFiles(directory=public_dir, html=True), name="")
 

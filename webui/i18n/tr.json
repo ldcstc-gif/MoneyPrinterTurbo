@@ -100,6 +100,15 @@
     "Hide Log": "Günlüğü Gizle",
     "Hide Basic Settings": "Temel Ayarları Gizle\n\nGizlendiği takdirde, temel ayarlar paneli sayfada görüntülenmeyecektir.\n\nTekrar görüntülemek için `config.toml` dosyasında `hide_config = false` olarak ayarlayın",
     "LLM Settings": "**LLM Ayarları**",
-    "Video Source Settings": "**Video Kaynağı Ayarları**"
+    "Video Source Settings": "**Video Kaynağı Ayarları**",
+    "Video Warehouse": "**Video Deposu** (:blue[Genişletmek ve oluşturulan videoları görmek için tıklayın])",
+    "Warehouse Empty": "Depoda henüz video yok. Videolar oluşturulduktan sonra buraya kaydedilecektir.",
+    "Warehouse Video Count": "Depoda **{count}** video",
+    "Untitled Video": "Adsız Video",
+    "Delete": "Sil",
+    "Video Deleted": "Video silindi",
+    "Delete Failed": "Silme başarısız",
+    "Previous Page": "Önceki",
+    "Next Page": "Sonraki"
   }
 }

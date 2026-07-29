@@ -119,6 +119,15 @@
     "Pixabay API Key added successfully": "Pixabay API Key added successfully",
     "Select Pixabay API Key to delete": "Select Pixabay API Key to delete",
     "Delete Selected Pixabay API Key": "Delete Selected Pixabay API Key",
-    "Pixabay API Key deleted successfully": "Pixabay API Key deleted successfully"
+    "Pixabay API Key deleted successfully": "Pixabay API Key deleted successfully",
+    "Video Warehouse": "**Video Warehouse** (:blue[Click to expand and view generated videos])",
+    "Warehouse Empty": "No videos in warehouse yet. Videos will be saved here after generation.",
+    "Warehouse Video Count": "**{count}** video(s) in warehouse",
+    "Untitled Video": "Untitled Video",
+    "Delete": "Delete",
+    "Video Deleted": "Video deleted",
+    "Delete Failed": "Delete failed",
+    "Previous Page": "Previous",
+    "Next Page": "Next"
   }
 }

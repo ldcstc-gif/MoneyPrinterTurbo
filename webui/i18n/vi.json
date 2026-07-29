@@ -117,6 +117,15 @@
     "Pixabay API Key added successfully": "Thêm API Key Pixabay thành công",
     "Select Pixabay API Key to delete": "Chọn API Key Pixabay để xóa",
     "Delete Selected Pixabay API Key": "Xóa API Key Pixabay đã chọn",
-    "Pixabay API Key deleted successfully": "Xóa API Key Pixabay thành công"
+    "Pixabay API Key deleted successfully": "Xóa API Key Pixabay thành công",
+    "Video Warehouse": "**Kho video** (:blue[Nhấp để mở rộng và xem các video đã tạo])",
+    "Warehouse Empty": "Chưa có video trong kho. Video sẽ được lưu tại đây sau khi tạo.",
+    "Warehouse Video Count": "**{count}** video trong kho",
+    "Untitled Video": "Video chưa đặt tên",
+    "Delete": "Xóa",
+    "Video Deleted": "Đã xóa video",
+    "Delete Failed": "Xóa thất bại",
+    "Previous Page": "Trang trước",
+    "Next Page": "Trang sau"
   }
 }

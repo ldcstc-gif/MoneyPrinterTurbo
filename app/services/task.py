@@ -1,6 +1,9 @@
+import json
 import math
 import os.path
 import re
+import shutil
+import time
 from os import path
 
 from loguru import logger
@@ -382,7 +385,40 @@ def start(task_id, params: VideoParams, stop_at: str = "video"):
     sm.state.update_task(
         task_id, state=const.TASK_STATE_COMPLETE, progress=100, **kwargs
     )
+
+    save_to_warehouse(task_id, params, final_video_paths, video_script)
+
     return kwargs
+
+
+def save_to_warehouse(task_id, params, final_video_paths, video_script):
+    try:
+        warehouse = utils.warehouse_dir()
+        for video_path in final_video_paths:
+            if not os.path.exists(video_path):
+                continue
+            video_name = os.path.basename(video_path)
+            timestamp = int(time.time())
+            dest_name = f"{task_id}_{timestamp}_{video_name}"
+            dest_path = os.path.join(warehouse, dest_name)
+            shutil.copy2(video_path, dest_path)
+
+            meta = {
+                "task_id": task_id,
+                "video_subject": params.video_subject,
+                "video_script": video_script[:200] if video_script else "",
+                "video_aspect": str(getattr(params, "video_aspect", "")),
+                "created_at": timestamp,
+                "original_path": video_path,
+                "file_name": dest_name,
+            }
+            meta_path = dest_path + ".json"
+            with open(meta_path, "w", encoding="utf-8") as f:
+                json.dump(meta, f, ensure_ascii=False, indent=2)
+
+        logger.info(f"saved {len(final_video_paths)} video(s) to warehouse for task {task_id}")
+    except Exception as e:
+        logger.error(f"failed to save videos to warehouse: {e}")
 
 
 if __name__ == "__main__":

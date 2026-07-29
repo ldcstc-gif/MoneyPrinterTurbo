@@ -1041,6 +1041,96 @@ with right_panel:
                     config.save_config()
                     st.success(tr("Pixabay API Key deleted successfully"))
 
+st.divider()
+with st.expander(tr("Video Warehouse"), expanded=False):
+    warehouse_dir = os.path.join(root_dir, "storage", "warehouse")
+    if not os.path.exists(warehouse_dir):
+        os.makedirs(warehouse_dir)
+
+    warehouse_videos = []
+    for f in sorted(os.listdir(warehouse_dir), reverse=True):
+        if f.endswith(".json"):
+            continue
+        file_path = os.path.join(warehouse_dir, f)
+        if not os.path.isfile(file_path):
+            continue
+
+        meta = {}
+        meta_path = file_path + ".json"
+        if os.path.exists(meta_path):
+            try:
+                import json as _json
+                with open(meta_path, "r", encoding="utf-8") as mf:
+                    meta = _json.load(mf)
+            except Exception:
+                pass
+
+        warehouse_videos.append({
+            "file_name": f,
+            "file_path": file_path,
+            "size": os.path.getsize(file_path),
+            "created_at": meta.get("created_at", int(os.path.getmtime(file_path))),
+            "video_subject": meta.get("video_subject", ""),
+            "video_script": meta.get("video_script", ""),
+            "task_id": meta.get("task_id", ""),
+        })
+
+    if not warehouse_videos:
+        st.info(tr("Warehouse Empty"))
+    else:
+        st.write(tr("Warehouse Video Count").replace("{count}", str(len(warehouse_videos))))
+
+        if "warehouse_page" not in st.session_state:
+            st.session_state["warehouse_page"] = 0
+
+        items_per_page = 6
+        total_pages = max(1, (len(warehouse_videos) + items_per_page - 1) // items_per_page)
+        current_page = st.session_state["warehouse_page"]
+        if current_page >= total_pages:
+            current_page = total_pages - 1
+            st.session_state["warehouse_page"] = current_page
+
+        start_idx = current_page * items_per_page
+        end_idx = min(start_idx + items_per_page, len(warehouse_videos))
+        page_videos = warehouse_videos[start_idx:end_idx]
+
+        cols = st.columns(3)
+        for idx, vid in enumerate(page_videos):
+            col = cols[idx % 3]
+            with col:
+                st.video(vid["file_path"])
+                subject = vid["video_subject"] or tr("Untitled Video")
+                from datetime import datetime
+                created_time = datetime.fromtimestamp(vid["created_at"]).strftime("%Y-%m-%d %H:%M")
+                size_mb = vid["size"] / (1024 * 1024)
+                st.caption(f"{subject} | {created_time} | {size_mb:.1f}MB")
+
+                delete_key = f"del_warehouse_{vid['file_name']}"
+                if st.button(tr("Delete"), key=delete_key, type="secondary"):
+                    try:
+                        os.remove(vid["file_path"])
+                        meta_file = vid["file_path"] + ".json"
+                        if os.path.exists(meta_file):
+                            os.remove(meta_file)
+                        st.success(tr("Video Deleted"))
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"{tr('Delete Failed')}: {e}")
+
+        if total_pages > 1:
+            page_cols = st.columns([1, 3, 1])
+            with page_cols[0]:
+                if st.button(tr("Previous Page"), disabled=current_page == 0, key="warehouse_prev"):
+                    st.session_state["warehouse_page"] = current_page - 1
+                    st.rerun()
+            with page_cols[1]:
+                st.write(f"{current_page + 1} / {total_pages}")
+            with page_cols[2]:
+                if st.button(tr("Next Page"), disabled=current_page >= total_pages - 1, key="warehouse_next"):
+                    st.session_state["warehouse_page"] = current_page + 1
+                    st.rerun()
+
+st.divider()
 start_button = st.button(tr("Generate Video"), use_container_width=True, type="primary")
 if start_button:
     config.save_config()
