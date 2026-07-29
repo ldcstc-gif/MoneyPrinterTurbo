@@ -1,5 +1,8 @@
 import os
 import random
+import re
+import subprocess
+import sys
 import threading
 from typing import List
 from urllib.parse import urlencode
@@ -148,6 +151,227 @@ def search_videos_pixabay(
     return []
 
 
+def search_videos_bilibili(
+    search_term: str,
+    minimum_duration: int,
+    video_aspect: VideoAspect = VideoAspect.portrait,
+) -> List[MaterialInfo]:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://www.bilibili.com",
+    }
+    params = {
+        "search_type": "video",
+        "keyword": search_term,
+        "page": 1,
+        "pagesize": 20,
+        "order": "totalrank",
+    }
+    logger.info(f"searching bilibili videos for: {search_term}")
+
+    try:
+        r = requests.get(
+            "https://api.bilibili.com/x/web-interface/search/type",
+            params=params,
+            headers=headers,
+            proxies=config.proxy,
+            verify=False,
+            timeout=(30, 60),
+        )
+        data = r.json()
+        video_items = []
+        if data.get("code") != 0:
+            logger.error(f"bilibili search failed: {data.get('message', data)}")
+            return video_items
+
+        results = data.get("data", {}).get("result", [])
+        for v in results:
+            duration_str = v.get("duration", "0:0")
+            parts = duration_str.split(":")
+            try:
+                duration = int(parts[0]) * 60 + int(parts[1]) if len(parts) == 2 else 0
+            except (ValueError, IndexError):
+                duration = 0
+
+            if duration < minimum_duration:
+                continue
+
+            bvid = v.get("bvid", "")
+            if bvid:
+                item = MaterialInfo()
+                item.provider = "bilibili"
+                item.url = f"https://www.bilibili.com/video/{bvid}"
+                item.duration = duration
+                video_items.append(item)
+
+        logger.info(f"bilibili: found {len(video_items)} videos for '{search_term}'")
+        return video_items
+    except Exception as e:
+        logger.error(f"bilibili search failed: {str(e)}")
+
+    return []
+
+
+def search_videos_douyin(
+    search_term: str,
+    minimum_duration: int,
+    video_aspect: VideoAspect = VideoAspect.portrait,
+) -> List[MaterialInfo]:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://www.douyin.com",
+        "Accept": "application/json",
+    }
+    logger.info(f"searching douyin videos for: {search_term}")
+
+    try:
+        r = requests.get(
+            "https://www.douyin.com/aweme/v1/web/search/item/",
+            params={
+                "keyword": search_term,
+                "search_channel": "aweme_video_web",
+                "count": 20,
+                "offset": 0,
+            },
+            headers=headers,
+            proxies=config.proxy,
+            verify=False,
+            timeout=(30, 60),
+        )
+        data = r.json()
+        video_items = []
+
+        for v in data.get("data", []):
+            aweme = v.get("aweme_info", {})
+            duration_ms = aweme.get("duration", 0)
+            duration = duration_ms // 1000 if duration_ms > 1000 else duration_ms
+
+            if duration < minimum_duration:
+                continue
+
+            aweme_id = aweme.get("aweme_id", "")
+            if aweme_id:
+                item = MaterialInfo()
+                item.provider = "douyin"
+                item.url = f"https://www.douyin.com/video/{aweme_id}"
+                item.duration = duration
+                video_items.append(item)
+
+        logger.info(f"douyin: found {len(video_items)} videos for '{search_term}'")
+        return video_items
+    except Exception as e:
+        logger.warning(f"douyin search requires browser cookies, falling back: {str(e)}")
+
+    return []
+
+
+def search_videos_xiaohongshu(
+    search_term: str,
+    minimum_duration: int,
+    video_aspect: VideoAspect = VideoAspect.portrait,
+) -> List[MaterialInfo]:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Referer": "https://www.xiaohongshu.com",
+        "Accept": "application/json",
+    }
+    logger.info(f"searching xiaohongshu videos for: {search_term}")
+
+    try:
+        r = requests.get(
+            "https://edith.xiaohongshu.com/api/sns/web/v1/search/notes",
+            params={
+                "keyword": search_term,
+                "page": 1,
+                "page_size": 20,
+                "sort": "general",
+                "note_type": 1,
+            },
+            headers=headers,
+            proxies=config.proxy,
+            verify=False,
+            timeout=(30, 60),
+        )
+        data = r.json()
+        video_items = []
+
+        for v in data.get("data", {}).get("items", []):
+            note_card = v.get("note_card", {})
+            if note_card.get("type") != "video":
+                continue
+
+            note_id = v.get("id", "")
+            if note_id:
+                item = MaterialInfo()
+                item.provider = "xiaohongshu"
+                item.url = f"https://www.xiaohongshu.com/explore/{note_id}"
+                item.duration = 30
+                video_items.append(item)
+
+        logger.info(f"xiaohongshu: found {len(video_items)} videos for '{search_term}'")
+        return video_items
+    except Exception as e:
+        logger.warning(f"xiaohongshu search requires browser cookies, falling back: {str(e)}")
+
+    return []
+
+
+def save_video_with_ytdlp(video_url: str, save_dir: str = "") -> str:
+    if not save_dir:
+        save_dir = utils.storage_dir("cache_videos")
+    os.makedirs(save_dir, exist_ok=True)
+
+    video_id = f"vid-{utils.md5(video_url)}"
+    video_path = os.path.join(save_dir, f"{video_id}.mp4")
+
+    if os.path.exists(video_path) and os.path.getsize(video_path) > 0:
+        logger.info(f"video already exists: {video_path}")
+        return video_path
+
+    try:
+        cmd = [
+            sys.executable, "-m", "yt_dlp",
+            "-f", "best[height<=720]/best",
+            "-o", video_path,
+            "--no-playlist",
+            "--no-check-certificates",
+            "--socket-timeout", "30",
+            "--retries", "3",
+            "--quiet",
+            video_url,
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
+        if result.returncode == 0 and os.path.exists(video_path) and os.path.getsize(video_path) > 0:
+            clip = None
+            try:
+                clip = VideoFileClip(video_path)
+                if clip.duration > 0 and clip.fps > 0:
+                    return video_path
+            except Exception as e:
+                logger.warning(f"invalid video file: {video_path} => {str(e)}")
+                try:
+                    os.remove(video_path)
+                except Exception:
+                    pass
+            finally:
+                if clip is not None:
+                    try:
+                        clip.close()
+                    except Exception:
+                        pass
+        else:
+            logger.error(f"yt-dlp failed for {video_url}: {result.stderr[:500]}")
+    except subprocess.TimeoutExpired:
+        logger.error(f"yt-dlp timed out for {video_url}")
+    except Exception as e:
+        logger.error(f"yt-dlp download failed: {str(e)}")
+
+    return ""
+
+
+_YTDLP_SOURCES = {"bilibili", "douyin", "xiaohongshu"}
+
+
 def save_video(video_url: str, save_dir: str = "") -> str:
     if not save_dir:
         save_dir = utils.storage_dir("cache_videos")
@@ -213,12 +437,19 @@ def download_videos(
     audio_duration: float = 0.0,
     max_clip_duration: int = 5,
 ) -> List[str]:
+    _search_func_map = {
+        "pexels": search_videos_pexels,
+        "pixabay": search_videos_pixabay,
+        "bilibili": search_videos_bilibili,
+        "douyin": search_videos_douyin,
+        "xiaohongshu": search_videos_xiaohongshu,
+    }
+
     valid_video_items = []
     valid_video_urls = []
     found_duration = 0.0
-    search_videos = search_videos_pexels
-    if source == "pixabay":
-        search_videos = search_videos_pixabay
+    search_videos = _search_func_map.get(source, search_videos_pexels)
+    use_ytdlp = source in _YTDLP_SOURCES
 
     for search_term in search_terms:
         video_items = search_videos(
@@ -233,6 +464,24 @@ def download_videos(
                 valid_video_items.append(item)
                 valid_video_urls.append(item.url)
                 found_duration += item.duration
+
+    # Fallback: if Chinese platform returned nothing, try Pexels with localized keywords
+    if not valid_video_items and source in _YTDLP_SOURCES:
+        logger.warning(f"{source} search returned no results, falling back to pexels with Asian keywords")
+        for search_term in search_terms:
+            fallback_term = f"{search_term} Asian"
+            video_items = search_videos_pexels(
+                search_term=fallback_term,
+                minimum_duration=max_clip_duration,
+                video_aspect=video_aspect,
+            )
+            logger.info(f"pexels fallback: found {len(video_items)} videos for '{fallback_term}'")
+            for item in video_items:
+                if item.url not in valid_video_urls:
+                    valid_video_items.append(item)
+                    valid_video_urls.append(item.url)
+                    found_duration += item.duration
+        use_ytdlp = False
 
     logger.info(
         f"found total videos: {len(valid_video_items)}, required duration: {audio_duration} seconds, found duration: {found_duration} seconds"
@@ -252,9 +501,14 @@ def download_videos(
     for item in valid_video_items:
         try:
             logger.info(f"downloading video: {item.url}")
-            saved_video_path = save_video(
-                video_url=item.url, save_dir=material_directory
-            )
+            if use_ytdlp:
+                saved_video_path = save_video_with_ytdlp(
+                    video_url=item.url, save_dir=material_directory
+                )
+            else:
+                saved_video_path = save_video(
+                    video_url=item.url, save_dir=material_directory
+                )
             if saved_video_path:
                 logger.info(f"video saved: {saved_video_path}")
                 video_paths.append(saved_video_path)
