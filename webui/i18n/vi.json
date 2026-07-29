@@ -126,6 +126,14 @@
     "Video Deleted": "Đã xóa video",
     "Delete Failed": "Xóa thất bại",
     "Previous Page": "Trang trước",
-    "Next Page": "Trang sau"
+    "Next Page": "Trang sau",
+    "Task Submitted": "Tác vụ đã được gửi chạy nền",
+    "Task Submitted Hint": "Tác vụ tạo video đang chạy nền. Bạn có thể đóng trang này. Quay lại sau và làm mới để kiểm tra tiến trình.",
+    "Task Monitor": "**Giám sát tác vụ** (:blue[Trạng thái tác vụ nền])",
+    "No Tasks": "Không có tác vụ nền",
+    "Refresh Status": "Làm mới",
+    "Task Complete": "Hoàn thành",
+    "Task Failed": "Thất bại",
+    "Task Processing": "Đang xử lý..."
   }
 }

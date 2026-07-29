@@ -126,6 +126,14 @@
     "Video Deleted": "Vídeo excluído",
     "Delete Failed": "Falha ao excluir",
     "Previous Page": "Anterior",
-    "Next Page": "Próxima"
+    "Next Page": "Próxima",
+    "Task Submitted": "Tarefa enviada para segundo plano",
+    "Task Submitted Hint": "A geração de vídeo está sendo executada em segundo plano. Você pode fechar esta página. Volte mais tarde e atualize para verificar o progresso.",
+    "Task Monitor": "**Monitor de Tarefas** (:blue[Status das tarefas em segundo plano])",
+    "No Tasks": "Nenhuma tarefa em segundo plano",
+    "Refresh Status": "Atualizar",
+    "Task Complete": "Concluído",
+    "Task Failed": "Falhou",
+    "Task Processing": "Processando..."
   }
 }

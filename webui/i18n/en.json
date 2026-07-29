@@ -128,6 +128,14 @@
     "Video Deleted": "Video deleted",
     "Delete Failed": "Delete failed",
     "Previous Page": "Previous",
-    "Next Page": "Next"
+    "Next Page": "Next",
+    "Task Submitted": "Task submitted to background",
+    "Task Submitted Hint": "Video generation task is running in the background. You can close this page. Come back later and refresh to check progress. Completed videos will be saved to the warehouse automatically.",
+    "Task Monitor": "**Task Monitor** (:blue[Background task status])",
+    "No Tasks": "No background tasks",
+    "Refresh Status": "Refresh",
+    "Task Complete": "Completed",
+    "Task Failed": "Failed",
+    "Task Processing": "Processing..."
   }
 }

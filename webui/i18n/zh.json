@@ -128,6 +128,14 @@
     "Video Deleted": "视频已删除",
     "Delete Failed": "删除失败",
     "Previous Page": "上一页",
-    "Next Page": "下一页"
+    "Next Page": "下一页",
+    "Task Submitted": "任务已提交到后台",
+    "Task Submitted Hint": "视频生成任务已提交到后台运行，您可以关闭此页面。稍后回来刷新查看进度，完成后视频将自动存入仓库。",
+    "Task Monitor": "**任务监控**（:blue[后台任务运行状态]）",
+    "No Tasks": "暂无后台任务",
+    "Refresh Status": "刷新状态",
+    "Task Complete": "已完成",
+    "Task Failed": "失败",
+    "Task Processing": "处理中..."
   }
 }

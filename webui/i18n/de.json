@@ -126,6 +126,14 @@
     "Video Deleted": "Video gelöscht",
     "Delete Failed": "Löschen fehlgeschlagen",
     "Previous Page": "Vorherige",
-    "Next Page": "Nächste"
+    "Next Page": "Nächste",
+    "Task Submitted": "Aufgabe im Hintergrund gestartet",
+    "Task Submitted Hint": "Die Videogenerierung läuft im Hintergrund. Sie können diese Seite schließen. Kommen Sie später zurück und aktualisieren Sie den Status.",
+    "Task Monitor": "**Aufgabenüberwachung** (:blue[Hintergrundaufgaben-Status])",
+    "No Tasks": "Keine Hintergrundaufgaben",
+    "Refresh Status": "Aktualisieren",
+    "Task Complete": "Abgeschlossen",
+    "Task Failed": "Fehlgeschlagen",
+    "Task Processing": "Verarbeitung..."
   }
 }

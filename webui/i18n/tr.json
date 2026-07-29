@@ -109,6 +109,14 @@
     "Video Deleted": "Video silindi",
     "Delete Failed": "Silme başarısız",
     "Previous Page": "Önceki",
-    "Next Page": "Sonraki"
+    "Next Page": "Sonraki",
+    "Task Submitted": "Görev arka planda başlatıldı",
+    "Task Submitted Hint": "Video oluşturma arka planda çalışıyor. Bu sayfayı kapatabilirsiniz. Daha sonra geri gelin ve durumu yenileyin.",
+    "Task Monitor": "**Görev İzleme** (:blue[Arka plan görev durumu])",
+    "No Tasks": "Arka plan görevi yok",
+    "Refresh Status": "Yenile",
+    "Task Complete": "Tamamlandı",
+    "Task Failed": "Başarısız",
+    "Task Processing": "İşleniyor..."
   }
 }
