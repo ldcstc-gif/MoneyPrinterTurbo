@@ -117,6 +117,23 @@
     "Pixabay API Key added successfully": "Chave de API do Pixabay adicionada com sucesso",
     "Select Pixabay API Key to delete": "Selecione a chave de API do Pixabay para excluir",
     "Delete Selected Pixabay API Key": "Excluir chave de API do Pixabay selecionada",
-    "Pixabay API Key deleted successfully": "Chave de API do Pixabay excluída com sucesso"
+    "Pixabay API Key deleted successfully": "Chave de API do Pixabay excluída com sucesso",
+    "Video Warehouse": "**Armazém de Vídeos** (:blue[Clique para expandir e ver os vídeos gerados])",
+    "Warehouse Empty": "Nenhum vídeo no armazém ainda. Os vídeos serão salvos aqui após a geração.",
+    "Warehouse Video Count": "**{count}** vídeo(s) no armazém",
+    "Untitled Video": "Vídeo sem título",
+    "Delete": "Excluir",
+    "Video Deleted": "Vídeo excluído",
+    "Delete Failed": "Falha ao excluir",
+    "Previous Page": "Anterior",
+    "Next Page": "Próxima",
+    "Task Submitted": "Tarefa enviada para segundo plano",
+    "Task Submitted Hint": "A geração de vídeo está sendo executada em segundo plano. Você pode fechar esta página. Volte mais tarde e atualize para verificar o progresso.",
+    "Task Monitor": "**Monitor de Tarefas** (:blue[Status das tarefas em segundo plano])",
+    "No Tasks": "Nenhuma tarefa em segundo plano",
+    "Refresh Status": "Atualizar",
+    "Task Complete": "Concluído",
+    "Task Failed": "Falhou",
+    "Task Processing": "Processando..."
   }
 }

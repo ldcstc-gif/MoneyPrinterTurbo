@@ -423,7 +423,7 @@ Generate a script for a video, depending on the subject of the video.
 5. only return the raw content of the script.
 6. do not include "voiceover", "narrator" or similar indicators of what should be spoken at the beginning of each paragraph or line.
 7. you must not mention the prompt, or anything about the script itself. also, never talk about the amount of paragraphs or lines. just write the script.
-8. respond in the same language as the video subject.
+8. respond in the same language as the video subject. If the subject is in Chinese, you MUST reply in Chinese. If in English, reply in English.
 
 # Initialization:
 - video subject: {video_subject}
@@ -431,6 +431,9 @@ Generate a script for a video, depending on the subject of the video.
 """.strip()
     if language:
         prompt += f"\n- language: {language}"
+    else:
+        if any("一" <= ch <= "鿿" for ch in video_subject):
+            prompt += "\n- language: zh-CN"
 
     final_script = ""
     logger.info(f"subject: {video_subject}")
@@ -493,6 +496,7 @@ Generate {amount} search terms for stock videos, depending on the subject of a v
 3. you must only return the json-array of strings. you must not return anything else. you must not return the script.
 4. the search terms must be related to the subject of the video.
 5. reply with english search terms only.
+6. when the video involves people or characters, prefer using "Asian" as a descriptor (e.g., "Asian woman", "Asian business team", "Asian family").
 
 ## Output Example:
 ["search term 1", "search term 2", "search term 3","search term 4","search term 5"]

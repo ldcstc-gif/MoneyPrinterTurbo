@@ -22,7 +22,10 @@ from app.models.schema import (
     VideoParams,
     VideoTransitionMode,
 )
+from app.controllers.manager.memory_manager import InMemoryTaskManager
+from app.models import const
 from app.services import llm, voice
+from app.services import state as sm
 from app.services import task as tm
 from app.utils import utils
 
@@ -202,6 +205,16 @@ def init_log():
 
 
 init_log()
+
+_max_concurrent_tasks = config.app.get("max_concurrent_tasks", 5)
+if "bg_task_manager" not in st.session_state:
+    st.session_state["bg_task_manager"] = InMemoryTaskManager(
+        max_concurrent_tasks=_max_concurrent_tasks
+    )
+bg_task_manager = st.session_state["bg_task_manager"]
+
+if "submitted_task_ids" not in st.session_state:
+    st.session_state["submitted_task_ids"] = []
 
 locales = utils.load_locales(i18n_dir)
 
@@ -1041,6 +1054,96 @@ with right_panel:
                     config.save_config()
                     st.success(tr("Pixabay API Key deleted successfully"))
 
+st.divider()
+with st.expander(tr("Video Warehouse"), expanded=False):
+    warehouse_dir = os.path.join(root_dir, "storage", "warehouse")
+    if not os.path.exists(warehouse_dir):
+        os.makedirs(warehouse_dir)
+
+    warehouse_videos = []
+    for f in sorted(os.listdir(warehouse_dir), reverse=True):
+        if f.endswith(".json"):
+            continue
+        file_path = os.path.join(warehouse_dir, f)
+        if not os.path.isfile(file_path):
+            continue
+
+        meta = {}
+        meta_path = file_path + ".json"
+        if os.path.exists(meta_path):
+            try:
+                import json as _json
+                with open(meta_path, "r", encoding="utf-8") as mf:
+                    meta = _json.load(mf)
+            except Exception:
+                pass
+
+        warehouse_videos.append({
+            "file_name": f,
+            "file_path": file_path,
+            "size": os.path.getsize(file_path),
+            "created_at": meta.get("created_at", int(os.path.getmtime(file_path))),
+            "video_subject": meta.get("video_subject", ""),
+            "video_script": meta.get("video_script", ""),
+            "task_id": meta.get("task_id", ""),
+        })
+
+    if not warehouse_videos:
+        st.info(tr("Warehouse Empty"))
+    else:
+        st.write(tr("Warehouse Video Count").replace("{count}", str(len(warehouse_videos))))
+
+        if "warehouse_page" not in st.session_state:
+            st.session_state["warehouse_page"] = 0
+
+        items_per_page = 6
+        total_pages = max(1, (len(warehouse_videos) + items_per_page - 1) // items_per_page)
+        current_page = st.session_state["warehouse_page"]
+        if current_page >= total_pages:
+            current_page = total_pages - 1
+            st.session_state["warehouse_page"] = current_page
+
+        start_idx = current_page * items_per_page
+        end_idx = min(start_idx + items_per_page, len(warehouse_videos))
+        page_videos = warehouse_videos[start_idx:end_idx]
+
+        cols = st.columns(3)
+        for idx, vid in enumerate(page_videos):
+            col = cols[idx % 3]
+            with col:
+                st.video(vid["file_path"])
+                subject = vid["video_subject"] or tr("Untitled Video")
+                from datetime import datetime
+                created_time = datetime.fromtimestamp(vid["created_at"]).strftime("%Y-%m-%d %H:%M")
+                size_mb = vid["size"] / (1024 * 1024)
+                st.caption(f"{subject} | {created_time} | {size_mb:.1f}MB")
+
+                delete_key = f"del_warehouse_{vid['file_name']}"
+                if st.button(tr("Delete"), key=delete_key, type="secondary"):
+                    try:
+                        os.remove(vid["file_path"])
+                        meta_file = vid["file_path"] + ".json"
+                        if os.path.exists(meta_file):
+                            os.remove(meta_file)
+                        st.success(tr("Video Deleted"))
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"{tr('Delete Failed')}: {e}")
+
+        if total_pages > 1:
+            page_cols = st.columns([1, 3, 1])
+            with page_cols[0]:
+                if st.button(tr("Previous Page"), disabled=current_page == 0, key="warehouse_prev"):
+                    st.session_state["warehouse_page"] = current_page - 1
+                    st.rerun()
+            with page_cols[1]:
+                st.write(f"{current_page + 1} / {total_pages}")
+            with page_cols[2]:
+                if st.button(tr("Next Page"), disabled=current_page >= total_pages - 1, key="warehouse_next"):
+                    st.session_state["warehouse_page"] = current_page + 1
+                    st.rerun()
+
+st.divider()
 start_button = st.button(tr("Generate Video"), use_container_width=True, type="primary")
 if start_button:
     config.save_config()
@@ -1109,42 +1212,56 @@ if start_button:
             if m.url:
                 params.video_materials.append(m)
 
-    log_container = st.empty()
-    log_records = []
+    sm.state.update_task(task_id)
+    bg_task_manager.add_task(tm.start, task_id=task_id, params=params, stop_at="video")
 
-    def log_received(msg):
-        if config.ui["hide_log"]:
-            return
-        with log_container:
-            log_records.append(msg)
-            st.code("\n".join(log_records))
-
-    logger.add(log_received)
-
-    st.toast(tr("Generating Video"))
-    logger.info(tr("Start Generating Video"))
-    logger.info(utils.to_json(params))
+    st.session_state["submitted_task_ids"].append(task_id)
+    logger.info(f"task {task_id} submitted to background")
+    st.toast(tr("Task Submitted"))
+    st.success(tr("Task Submitted Hint"))
     scroll_to_bottom()
 
-    result = tm.start(task_id=task_id, params=params)
-    if not result or "videos" not in result:
-        st.error(tr("Video Generation Failed"))
-        logger.error(tr("Video Generation Failed"))
-        scroll_to_bottom()
-        st.stop()
+st.divider()
+with st.expander(tr("Task Monitor"), expanded=True):
+    all_task_ids = list(st.session_state.get("submitted_task_ids", []))
+    if not all_task_ids:
+        st.info(tr("No Tasks"))
+    else:
+        col_refresh, col_spacer = st.columns([1, 5])
+        with col_refresh:
+            if st.button(tr("Refresh Status"), key="refresh_tasks"):
+                st.rerun()
 
-    video_files = result.get("videos", [])
-    st.success(tr("Video Generation Completed"))
-    try:
-        if video_files:
-            player_cols = st.columns(len(video_files) * 2 + 1)
-            for i, url in enumerate(video_files):
-                player_cols[i * 2 + 1].video(url)
-    except Exception:
-        pass
+        for t_id in reversed(all_task_ids):
+            task_info = sm.state.get_task(t_id)
+            if not task_info:
+                continue
 
-    open_task_folder(task_id)
-    logger.info(tr("Video Generation Completed"))
-    scroll_to_bottom()
+            state = task_info.get("state", const.TASK_STATE_PROCESSING)
+            progress = task_info.get("progress", 0)
+
+            if state == const.TASK_STATE_COMPLETE:
+                status_icon = "~~"
+                status_text = tr("Task Complete")
+            elif state == const.TASK_STATE_FAILED:
+                status_icon = "!!"
+                status_text = tr("Task Failed")
+            else:
+                status_icon = ">>"
+                status_text = tr("Task Processing")
+
+            with st.container(border=True):
+                st.write(f"**{status_icon} {t_id[:8]}...** | {status_text} | {progress}%")
+                st.progress(min(progress, 100))
+
+                if state == const.TASK_STATE_COMPLETE:
+                    videos = task_info.get("videos", [])
+                    if videos:
+                        vid_cols = st.columns(min(len(videos), 3))
+                        for i, v_path in enumerate(videos):
+                            if os.path.exists(v_path):
+                                vid_cols[i % 3].video(v_path)
+                elif state == const.TASK_STATE_FAILED:
+                    st.error(tr("Video Generation Failed"))
 
 config.save_config()

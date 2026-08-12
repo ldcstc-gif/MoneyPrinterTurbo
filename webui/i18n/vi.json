@@ -117,6 +117,23 @@
     "Pixabay API Key added successfully": "Thêm API Key Pixabay thành công",
     "Select Pixabay API Key to delete": "Chọn API Key Pixabay để xóa",
     "Delete Selected Pixabay API Key": "Xóa API Key Pixabay đã chọn",
-    "Pixabay API Key deleted successfully": "Xóa API Key Pixabay thành công"
+    "Pixabay API Key deleted successfully": "Xóa API Key Pixabay thành công",
+    "Video Warehouse": "**Kho video** (:blue[Nhấp để mở rộng và xem các video đã tạo])",
+    "Warehouse Empty": "Chưa có video trong kho. Video sẽ được lưu tại đây sau khi tạo.",
+    "Warehouse Video Count": "**{count}** video trong kho",
+    "Untitled Video": "Video chưa đặt tên",
+    "Delete": "Xóa",
+    "Video Deleted": "Đã xóa video",
+    "Delete Failed": "Xóa thất bại",
+    "Previous Page": "Trang trước",
+    "Next Page": "Trang sau",
+    "Task Submitted": "Tác vụ đã được gửi chạy nền",
+    "Task Submitted Hint": "Tác vụ tạo video đang chạy nền. Bạn có thể đóng trang này. Quay lại sau và làm mới để kiểm tra tiến trình.",
+    "Task Monitor": "**Giám sát tác vụ** (:blue[Trạng thái tác vụ nền])",
+    "No Tasks": "Không có tác vụ nền",
+    "Refresh Status": "Làm mới",
+    "Task Complete": "Hoàn thành",
+    "Task Failed": "Thất bại",
+    "Task Processing": "Đang xử lý..."
   }
 }
