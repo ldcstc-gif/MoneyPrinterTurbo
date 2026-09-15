@@ -113,6 +113,15 @@ def song_dir(sub_dir: str = ""):
     return d
 
 
+def warehouse_dir(sub_dir: str = ""):
+    d = os.path.join(storage_dir(), "warehouse")
+    if sub_dir:
+        d = os.path.join(d, sub_dir)
+    if not os.path.exists(d):
+        os.makedirs(d)
+    return d
+
+
 def public_dir(sub_dir: str = ""):
     d = resource_dir("public")
     if sub_dir:
